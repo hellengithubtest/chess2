@@ -14,8 +14,6 @@ public class ChessGame {
 
         public boolean processTurn(Player player) {
             Random random = new Random();
-
-            player.checkAlivePieces(board.getDeletedPieces());
             if(!board.isAliveKing(player.getColor())) {
                 board.setWin(true);
                 return true;

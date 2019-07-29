@@ -1,15 +1,20 @@
 package com.company.app;
 
+import com.company.app.models.Observer;
 import com.company.app.models.Piece;
+import com.company.app.models.Subject;
+
 import java.util.ArrayList;
 
-public class Board {
+public class Board implements Subject {
     private final int WIGHT = 8;
     private final int HEIGHT = 8;
     private Piece[][] boardPieces;
     private ArrayList<Piece> deletedPieces;
     private boolean win;
     private static Board instance;
+
+    private ArrayList observers;
 
     public Board() {
         win = false;
@@ -46,19 +51,22 @@ public class Board {
     }
 
     public void executeMove(Piece piece, Cell nextCell) {
-        if (boardPieces[nextCell.getX()][nextCell.getY()] != null) {
-            deletedPieces.add(boardPieces[nextCell.getX()][nextCell.getY()]);
-            boardPieces[nextCell.getX()][nextCell.getY()] = piece;
-            releaseCell(piece);
-            piece.setCurrentCell(nextCell);
-
-        } else {
-            //System.out.println("The cell is free, we can move");
-            releaseCell(piece);
-            piece.setCurrentCell(nextCell);
-            boardPieces[nextCell.getX()][nextCell.getY()] = piece;
+        try {
+            if (boardPieces[nextCell.getX()][nextCell.getY()] != null) {
+                deletedPieces.add(boardPieces[nextCell.getX()][nextCell.getY()]);
+                boardPieces[nextCell.getX()][nextCell.getY()] = piece;
+                releaseCell(piece);
+                piece.setCurrentCell(nextCell);
+            } else {
+                //System.out.println("The cell is free, we can move");
+                releaseCell(piece);
+                piece.setCurrentCell(nextCell);
+                boardPieces[nextCell.getX()][nextCell.getY()] = piece;
+            }
+            printBoard();
+        } finally {
+            notifyObservers();
         }
-        printBoard();
     }
 
     public void releaseCell(Piece piece) {
@@ -80,37 +88,27 @@ public class Board {
         return false;
     }
 
-/*    public void printBoard() {
-        for (int y = boardPieces.length - 1; y >= 0; y--) {
-            for (int x = 0; x < boardPieces.length * 11; x++) {
-                if (x % 11 == 0) {
-                    System.out.print("|");
-                } else {
-                    System.out.print("_");
-                }
-            }
-            System.out.println("| ");
-            for (int x = 0; x < boardPieces.length * 11; x++) {
-                if (x % 11 == 0) {
-                    System.out.print("|");
-                } else {
-                    System.out.print(" ");
-                }
-            }
-            System.out.println("| ");
-            for (int x = 0; x < boardPieces.length; x++) {
-                if (x == 0) {
-                    System.out.print(y);
-                }
+    @Override
+    public void registerObserver(Observer observer) {
+        observers.add(observer);
+    }
+    @Override
+    public void removeObserver(Observer observer) {
+        int i = observers.indexOf(observer);
+        if (i >= 0) {
+            observers.remove(i);
+        }
+    }
+    @Override
+    public void notifyObservers() {
+        for (int i = 0; i < observers.size(); i++) {
+            Observer observer = (Observer)observers.get(i);
+            observer.update(deletedPieces);
+        }
+    }
 
-                if (boardPieces[x][y] == null) {
-                    System.out.print("  " + "       " + " |");
-                } else {
-                    System.out.print("  " + boardPieces[x][y] + " |");
-                }
-            }
-            System.out.println();
-            if (y == 0) {
+    /*    public void printBoard() {
+            for (int y = boardPieces.length - 1; y >= 0; y--) {
                 for (int x = 0; x < boardPieces.length * 11; x++) {
                     if (x % 11 == 0) {
                         System.out.print("|");
@@ -118,19 +116,48 @@ public class Board {
                         System.out.print("_");
                     }
                 }
-                System.out.println("|");
+                System.out.println("| ");
+                for (int x = 0; x < boardPieces.length * 11; x++) {
+                    if (x % 11 == 0) {
+                        System.out.print("|");
+                    } else {
+                        System.out.print(" ");
+                    }
+                }
+                System.out.println("| ");
                 for (int x = 0; x < boardPieces.length; x++) {
-                    System.out.print("      ");
-                    System.out.print(x);
-                    System.out.print("    ");
+                    if (x == 0) {
+                        System.out.print(y);
+                    }
 
+                    if (boardPieces[x][y] == null) {
+                        System.out.print("  " + "       " + " |");
+                    } else {
+                        System.out.print("  " + boardPieces[x][y] + " |");
+                    }
                 }
                 System.out.println();
-                System.out.println(" The pieces is out of game: " + deletedPieces);
-            }
+                if (y == 0) {
+                    for (int x = 0; x < boardPieces.length * 11; x++) {
+                        if (x % 11 == 0) {
+                            System.out.print("|");
+                        } else {
+                            System.out.print("_");
+                        }
+                    }
+                    System.out.println("|");
+                    for (int x = 0; x < boardPieces.length; x++) {
+                        System.out.print("      ");
+                        System.out.print(x);
+                        System.out.print("    ");
 
-        }
-    }*/
+                    }
+                    System.out.println();
+                    System.out.println(" The pieces is out of game: " + deletedPieces);
+                }
+
+            }
+        }*/
     public void printBoard() {
         for (int y = boardPieces.length - 1; y >= 0; y--) {
 
